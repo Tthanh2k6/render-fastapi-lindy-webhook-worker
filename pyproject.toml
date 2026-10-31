@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "render-fastapi-lindy-webhook-worker"
+version = "0.1.0"
+description = "Lightweight Render.com FastAPI webhook sidecar and cron harvester for Lindy AI agents, Apify B2B Actors, and Close/Twenty CRM"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Trung Thanh Tran", email = "ttrungthanh90@gmail.com" }
+]
+dependencies = [
+  "fastapi>=0.110.0",
+  "uvicorn>=0.27.0",
+  "httpx>=0.26.0",
+  "pydantic>=2.5.0",
+  "PyYAML>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

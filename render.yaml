@@ -1,0 +1,65 @@
+# Official Render Blueprint Specification (https://render.com/docs/blueprint-spec)
+# Deploys a <50MB RAM FastAPI Lindy AI Webhook Sidecar + Scheduled Apify B2B Harvester + Key-Value + Postgres
+
+services:
+  - type: web
+    name: render-lindy-webhook-sidecar
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install --upgrade pip && pip install .
+    startCommand: uvicorn render_lindy_worker.app:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: LINDY_WEBHOOK_SECRET
+        sync: false
+      - key: APIFY_API_TOKEN
+        sync: false
+      - key: CLOSE_CRM_API_KEY
+        sync: false
+      - key: IDEMPOTENCY_KV_URL
+        fromService:
+          type: keyvalue
+          name: render-lindy-idempotency-kv
+          property: connectionString
+      - key: DATABASE_URL
+        fromDatabase:
+          name: render-lindy-audit-pg
+          property: connectionString
+
+  - type: cron
+    name: apify-b2b-lead-harvest-cron
+    runtime: python
+    plan: starter
+    region: oregon
+    schedule: "0 */6 * * *"
+    buildCommand: pip install --upgrade pip && pip install .
+    startCommand: python -m render_lindy_worker.cron_harvest
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: APIFY_API_TOKEN
+        sync: false
+      - key: APIFY_ACTOR_ID
+        value: "thanh81646/apify-b2b-lead-and-contact-enricher"
+      - key: LINDY_INGEST_WEBHOOK_URL
+        sync: false
+      - key: LINDY_WEBHOOK_SECRET
+        sync: false
+
+  - type: keyvalue
+    name: render-lindy-idempotency-kv
+    plan: starter
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+
+databases:
+  - name: render-lindy-audit-pg
+    databaseName: lindy_sidecar_audit
+    user: lindy_worker
+    plan: basic-256mb
+    region: oregon
