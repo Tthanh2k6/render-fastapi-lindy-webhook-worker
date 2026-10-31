@@ -91,17 +91,17 @@ def test_lindy_webhook_processes_leads_and_enforces_idempotency() -> None:
         "idempotency_key": "idem_batch_777",
         "raw_leads": [
             {
-                "website": "https://www.Pineapple.ch/services",
-                "companyName": "pineapple AG",
-                "emails": ["noreply@sentry.io", "philipp.koch@pineapple.ch"],
+                "website": "https://www.Acme.example.com/services",
+                "companyName": "Acme AG",
+                "emails": ["noreply@sentry.io", "jane.doe@acme.example.com"],
                 "phone": "+41 44 500 00 00",
                 "countryCode": "ch",
                 "description": "Swiss digital consultancy building automated workflows.",
             },
             {
-                "domain": "pineapple.ch",
+                "domain": "acme.example.com",
                 "companyName": "Duplicate Swiss Co",
-                "email": "info@pineapple.ch",
+                "email": "info@acme.example.com",
             },
             {
                 "domain": "sentry.io",
@@ -128,9 +128,9 @@ def test_lindy_webhook_processes_leads_and_enforces_idempotency() -> None:
         "skipped_duplicates": 1,
         "skipped_invalid": 1,
     }
-    assert env["leads"][0]["domain"] == "pineapple.ch"
-    assert env["leads"][0]["primary_email"] == "philipp.koch@pineapple.ch"
-    assert env["close_crm_payloads"][0]["url"] == "https://pineapple.ch"
+    assert env["leads"][0]["domain"] == "acme.example.com"
+    assert env["leads"][0]["primary_email"] == "jane.doe@acme.example.com"
+    assert env["close_crm_payloads"][0]["url"] == "https://acme.example.com"
 
     # Replay with exact same idempotency_key returns cached result without re-running
     second = client.post("/v1/lindy/webhook", content=raw, headers=headers)
